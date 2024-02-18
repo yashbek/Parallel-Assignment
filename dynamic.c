@@ -101,7 +101,7 @@ int main() {
 
       clock_t end_time = clock(); // End measuring time
       total_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
-      save_pgm("../dyn_mandelbrot.pgm", image);
+      save_pgm("dyn_mandelbrot.pgm", image);
       printf("The execution time of the dynamic trial is: %f ms\n", total_time*1000);
     }
     else

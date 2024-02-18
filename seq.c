@@ -74,7 +74,7 @@ int main() {
 
       total_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
 
-    save_pgm("../seq_mandelbrot.pgm", image);
+    save_pgm("seq_mandelbrot.pgm", image);
     printf("The execution time of the sequential trial is: %f ms\n", total_time*1000);
 
 

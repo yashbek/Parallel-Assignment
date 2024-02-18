@@ -84,7 +84,7 @@ int main() {
     if(rank == 0){
       clock_t end_time = clock(); // End measuring time
       total_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
-      save_pgm("../stat_mandelbrot.pgm", res);
+      save_pgm("stat_mandelbrot.pgm", res);
       printf("The execution time of the static trial is: %f ms\n", total_time/N*1000);
     }
     MPI_Finalize();
