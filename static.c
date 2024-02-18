@@ -1,3 +1,4 @@
+#include <mpi.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -12,8 +13,6 @@ struct complex{
 
 
 int cal_pixel(struct complex c) {
-
-
             double z_real = 0;
             double z_imag = 0;
 
@@ -30,9 +29,7 @@ int cal_pixel(struct complex c) {
                 iter++;
             }
             while ((iter < MAX_ITER) && (lengthsq < 4.0));
-
             return iter;
-
 }
 
 void save_pgm(const char *filename, int image[HEIGHT][WIDTH]) {
@@ -54,30 +51,42 @@ void save_pgm(const char *filename, int image[HEIGHT][WIDTH]) {
     fclose(pgmimg);
 }
 
-
 int main() {
-    int image[HEIGHT][WIDTH];
+    int image[HEIGHT][WIDTH] = {0};
+    double AVG = 0;
+    int N = 1;
+    int res[HEIGHT][WIDTH] = {0};
     double total_time;
     struct complex c;
+    clock_t start_time;
 
-      clock_t start_time = clock(); // Start measuring time
-      int i, j;
-      for (i = 0; i < HEIGHT; i++) {
-          for (j = 0; j < WIDTH; j++) {
-              c.real = (j - WIDTH / 2.0) * 4.0 / WIDTH;
-              c.imag = (i - HEIGHT / 2.0) * 4.0 / HEIGHT;
-              image[i][j] = cal_pixel(c);
-          }
+    MPI_Init(NULL, NULL);
+
+    int p;
+    MPI_Comm_size(MPI_COMM_WORLD, &p);
+
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    int PHeight = HEIGHT/p;
+
+    if(rank == 0){
+      start_time = clock();
+    }
+      for (int i = 0; i < PHeight; i++) {
+        for (int j = 0; j < WIDTH; j++) {
+          c.real = (j - (WIDTH / 2.0)) * 4.0 / WIDTH;
+          c.imag = ((rank * PHeight) + i - (HEIGHT / 2.0)) * 4.0 / HEIGHT;
+          image[rank * PHeight + i][j] = cal_pixel(c);
+        }
       }
-
+    MPI_Reduce(image, res, HEIGHT * WIDTH, MPI_INT, MPI_BOR, 0, MPI_COMM_WORLD);
+    if(rank == 0){
       clock_t end_time = clock(); // End measuring time
-
       total_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
-
-    save_pgm("../seq_mandelbrot.pgm", image);
-    printf("The execution time of the sequential trial is: %f ms\n", total_time*1000);
-
-
-
+      save_pgm("../stat_mandelbrot.pgm", res);
+      printf("The execution time of the static trial is: %f ms\n", total_time/N*1000);
+    }
+    MPI_Finalize();
     return 0;
 }
